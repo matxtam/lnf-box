@@ -1,5 +1,12 @@
   export type typeItem = {
     name: string,
     loc: string,
-    time: string,
+    time: Date,
+    colors?: string[],
+    straits?: string[],
+    owner?: {
+      name?: string,
+      tel?: string,
+      ID?: string,
+    }
   };
