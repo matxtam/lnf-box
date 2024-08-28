@@ -13,7 +13,7 @@ export default function item({ name, loc, time }: typeItem) {
   return (<div className="bg-gray-500 text-white rounded p-4 m-4">
     <h2>{name}</h2>
     <p className="">{loc}</p>
-    <p>{time.toLocaleDateString()}</p>
+    <p>{time.toDateString()}</p>
     <Dialog>
       <DialogTrigger className="bg-transparent text-white border-black border-4">立即領取</DialogTrigger>
       <DialogContent>

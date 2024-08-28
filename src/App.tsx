@@ -37,11 +37,20 @@ function App() {
 
   const getGameList = () => {
     // fetch data and filter
-    setItemList(itemsFake.filter(item => (
-      item.name.includes(srchName) && item.loc.includes(srchLoc) &&
-      item.time.getTime() < (srchDate2?.getTime() ?? 10000000) &&
-      item.time.getTime() > (srchDate1?.getTime() ?? 0)
-    )))
+    // setItemList(itemsFake.filter(item => (
+    //   item.name.includes(srchName) && item.loc.includes(srchLoc) &&
+    //   item.time.getTime() < (srchDate2?.getTime() ?? 10000000) &&
+    //   item.time.getTime() > (srchDate1?.getTime() ?? 0)
+    // )))
+    fetch("http://localhost:8000/")
+      .then((response) => response.json())
+      .then((payload) => {
+        setItemList(payload.map((item:Omit<typeItem, "time"> & {time : string}) => {
+          return {...item, time: new Date(item.time)}
+        }));
+        console.log(payload);
+      })
+      .catch((error) => console.log(error))
     setGameStraitList(itemList.reduce<string[]>((acc, item) => {
       acc.push(...(item.straits ?? []), ...(item.colors ?? []));
       return acc;
@@ -92,10 +101,12 @@ function App() {
       {// found items list
       (stage == "found") ?
         <article className='flex flex-col gap-2'>
-          {itemsFake.map(item => {
+          {/* {itemsFake.map(item => { */}
+          {itemList.map(item =>{
             if (item.name.includes(srchName) && item.loc.includes(srchLoc) &&
               item.time.getTime() < (srchDate2?.getTime() ?? 10000000) &&
               item.time.getTime() > (srchDate1?.getTime() ?? 0))
+            // if(true)
               return (<Item
                 name={item.name}
                 loc={item.loc}
@@ -121,8 +132,8 @@ function App() {
         else if (stage == "search2") setStage("search3");
         else if (stage == "search3") {
           setStage("found");
-          console.log(srchName); console.log(srchDate1); console.log(srchDate2);
           getGameList();
+          // console.log(srchName); console.log(srchDate1); console.log(srchDate2);
         }
         else {
           setStage("start");

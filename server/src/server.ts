@@ -56,7 +56,7 @@ const server = http.createServer(async (req, res) => {
         const colors = row.properties.color;
         const straits = row.properties.feature;
         const loc = row.properties.location;
-        const date = row.properties.date;
+        const time = row.properties.date;
         const owner_name = row.properties.name;
         const owner_phone = row.properties.phone;
         const owner_ID = row.properties.ID_number;
@@ -67,7 +67,7 @@ const server = http.createServer(async (req, res) => {
           colors.type == "multi_select" && 
           straits.type == "multi_select" && 
           loc.type == "rich_text" && 
-          date.type == "date" && 
+          time.type == "date" && 
           owner_name.type == "rich_text" && 
           owner_phone.type == "rich_text" && 
           owner_ID.type == "rich_text" 
@@ -75,19 +75,19 @@ const server = http.createServer(async (req, res) => {
 
         // if(some filtering situations)
         return {
-          id: id.title?.[0]?.plain_text,
-          name: name.rich_text?.[0]?.plain_text,
+          id: id.title?.[0]?.plain_text ?? "INVALID",
+          name: name.rich_text?.[0]?.plain_text ?? "INVALID",
           colors: colors.multi_select?.map(obj => obj.name),
           straits: straits.multi_select?.map(obj => obj.name),
-          loc: loc.rich_text?.[0]?.plain_text,
-          date: new Date(date.date?.start ?? ""), 
+          loc: loc.rich_text?.[0]?.plain_text ?? "INVALID",
+          time: new Date(time.date?.start ?? 0), 
           owner: {
             name: owner_name.rich_text?.[0]?.plain_text,
             phone: owner_phone.rich_text?.[0]?.plain_text,
             ID: owner_ID.rich_text?.[0]?.plain_text,
           }
         }
-        else return { }
+        else return { id:"INVALID", name:"INVALID", loc:"INVALID", time: new Date(0)}
       })
 
       res.setHeader("Content-Type", "application/json");
