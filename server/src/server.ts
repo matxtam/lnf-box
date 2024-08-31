@@ -3,18 +3,18 @@ import http from "http";
 import url from "url";
 import { Client } from "@notionhq/client";
 
-  // export type typeItem = {
-  //   name: string,
-  //   loc?: string,
-  //   time?: string,
-  //   colors?: string,
-  //   straits?: string[],
-  //   owner?: {
-  //     name?: string,
-  //     tel?: string,
-  //     ID?: string,
-  //   }
-  // };
+// export type typeItem = {
+//   name: string,
+//   loc?: string,
+//   time?: string,
+//   colors?: string,
+//   straits?: string[],
+//   owner?: {
+//     name?: string,
+//     tel?: string,
+//     ID?: string,
+//   }
+// };
 
 // The dotenv library will read from your .env file into these values on `process.env`
 const notionDatabaseId = process.env.NOTION_DATABASE_ID;
@@ -38,19 +38,20 @@ const port = 8000;
 const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const parsedUrl = url.parse(req.url??"", true)
-  // switch (req.url) {
+  const parsedUrl = url.parse(req.url ?? "", true)
   switch (parsedUrl.pathname) {
     case "/":
       // Query the database and wait for the result
       const query = await notion.databases.query({
         database_id: notionDatabaseId,
       });
-     
+
       const params = parsedUrl.query;
+      console.log(params);
+      if (typeof (params.date1) == "string") console.log(new Date(params.date1));
 
       // const list = query.results[1].properties.color
-      const list = query.results.map(row => {
+      const list = query.results.reduce<{}[]>((acc, row) => {
         const id = row.properties.number;
         const name = row.properties.items;
         const colors = row.properties.color;
@@ -61,38 +62,95 @@ const server = http.createServer(async (req, res) => {
         const owner_phone = row.properties.phone;
         const owner_ID = row.properties.ID_number;
 
-        if(
-          id.type == "title" && 
-          name.type == "rich_text" && 
-          colors.type == "multi_select" && 
-          straits.type == "multi_select" && 
-          loc.type == "rich_text" && 
-          time.type == "date" && 
-          owner_name.type == "rich_text" && 
-          owner_phone.type == "rich_text" && 
-          owner_ID.type == "rich_text" 
-        )
+        // data type check
+        if (
+          id.type == "title" &&
+          name.type == "rich_text" &&
+          colors.type == "multi_select" &&
+          straits.type == "multi_select" &&
+          loc.type == "rich_text" &&
+          time.type == "date" &&
+          owner_name.type == "rich_text" &&
+          owner_phone.type == "rich_text" &&
+          owner_ID.type == "rich_text" &&
+          typeof (params.name) == "string" &&
+          typeof (params.loc) == "string" &&
+          typeof (params.date1) == "string" &&
+          typeof (params.date2) == "string"
+        ) {
 
-        // if(some filtering situations)
-        return {
-          id: id.title?.[0]?.plain_text ?? "INVALID",
-          name: name.rich_text?.[0]?.plain_text ?? "INVALID",
-          colors: colors.multi_select?.map(obj => obj.name),
-          straits: straits.multi_select?.map(obj => obj.name),
-          loc: loc.rich_text?.[0]?.plain_text ?? "INVALID",
-          time: new Date(time.date?.start ?? 0), 
-          owner: {
-            name: owner_name.rich_text?.[0]?.plain_text,
-            phone: owner_phone.rich_text?.[0]?.plain_text,
-            ID: owner_ID.rich_text?.[0]?.plain_text,
-          }
+          // filtering
+          if (
+            name.rich_text?.[0]?.plain_text.includes(params.name) &&
+            loc.rich_text?.[0]?.plain_text.includes(params.loc) &&
+            (new Date(params.date1)).getTime()           <= (new Date(time.date?.start ?? 0)).getTime() &&
+            (new Date(params.date2)).getTime() + 8.64e+7 >= (new Date(time.date?.start ?? 0)).getTime()
+          )
+
+            acc.push({
+              id: id.title?.[0]?.plain_text ?? "INVALID",
+              name: name.rich_text?.[0]?.plain_text ?? "INVALID",
+              loc: loc.rich_text?.[0]?.plain_text ?? "INVALID",
+              time: new Date(time.date?.start ?? 0),
+              colors: colors.multi_select?.map(obj => obj.name),
+              straits: straits.multi_select?.map(obj => obj.name),
+              owner: {
+                name: owner_name.rich_text?.[0]?.plain_text,
+                phone: owner_phone.rich_text?.[0]?.plain_text,
+                ID: owner_ID.rich_text?.[0]?.plain_text,
+              }
+            });
+            return acc;
         }
-        else return { id:"INVALID", name:"INVALID", loc:"INVALID", time: new Date(0)}
-      })
+        else return acc;
+      }, [])
 
+      console.log(list);
       res.setHeader("Content-Type", "application/json");
       res.writeHead(200);
       res.end(JSON.stringify(list));
+      break;
+
+    case "/name":
+      console.log("/name called");
+      // Query the database and wait for the result
+      const query_name = await notion.databases.query({
+        database_id: notionDatabaseId,
+      });
+
+      const list_name = query_name.results.reduce<string[]>((acc, row) => {
+        const name = row.properties.items;
+        if (name.type == "rich_text" &&
+          name.rich_text?.[0]?.plain_text &&
+          !acc.includes(name.rich_text?.[0]?.plain_text))
+          acc.push(name.rich_text?.[0]?.plain_text ?? "INVALID")
+        return acc;
+      }, [])
+
+      res.setHeader("Content-Type", "application/json");
+      res.writeHead(200);
+      res.end(JSON.stringify(list_name));
+      break;
+
+    case "/loc":
+      console.log("/loc called");
+      // Query the database and wait for the result
+      const query_loc = await notion.databases.query({
+        database_id: notionDatabaseId,
+      });
+
+      const list_loc = query_loc.results.reduce<string[]>((acc, row) => {
+        const loc = row.properties.location;
+        if (loc.type == "rich_text" &&
+          loc.rich_text?.[0]?.plain_text &&
+          !acc.includes(loc.rich_text?.[0]?.plain_text))
+          acc.push(loc.rich_text?.[0]?.plain_text ?? "INVALID")
+        return acc;
+      }, [])
+
+      res.setHeader("Content-Type", "application/json");
+      res.writeHead(200);
+      res.end(JSON.stringify(list_loc));
       break;
 
     default:
