@@ -28,12 +28,35 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url ?? "", true)
   switch (parsedUrl.pathname) {
     case "/":
+      const params = parsedUrl.query;
       // Query the database and wait for the result
       const query = await notion.databases.query({
         database_id: notionDatabaseId,
+        filter:{
+          and:[{
+            property: "items",
+            rich_text: {
+              contains: typeof(params.name) == "string" ? params.name : "INVALID"
+            }
+          },{
+            property: "location",
+            rich_text: {
+              contains: typeof(params.loc) == "string" ? params.loc : "INVALID"
+            }
+          },{
+            property: "date",
+            date:{
+              on_or_after: typeof(params.date1) == "string" ? (new Date(params.date1)).toJSON() : "INVALID"
+            }
+          },{
+            property: "date",
+            date:{
+              on_or_before: typeof(params.date2) == "string" ? (new Date((new Date(params.date2)).getTime() + 8.64e+7)).toJSON() : "INVALID"
+            }
+          }]
+        }
       });
 
-      const params = parsedUrl.query;
       // console.log(params);
       // if (typeof (params.date1) == "string") console.log(new Date(params.date1));
 
