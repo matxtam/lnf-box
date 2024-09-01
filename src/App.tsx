@@ -65,9 +65,6 @@ function App() {
         // console.log(payload);
       })
       .catch((error) => console.log(error))
-
-    // setting strait list
-    
   }
 
   const handleNextStep = () => {

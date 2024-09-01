@@ -34,8 +34,8 @@ const server = http.createServer(async (req, res) => {
       });
 
       const params = parsedUrl.query;
-      console.log(params);
-      if (typeof (params.date1) == "string") console.log(new Date(params.date1));
+      // console.log(params);
+      // if (typeof (params.date1) == "string") console.log(new Date(params.date1));
 
       // const list = query.results[1].properties.color
       const list = query.results.reduce<{}[]>((acc, row) => {
@@ -101,7 +101,7 @@ const server = http.createServer(async (req, res) => {
       break;
 
     case "/name":
-      console.log("/name called");
+      // console.log("/name called");
       // Query the database and wait for the result
       const query_name = await notion.databases.query({
         database_id: notionDatabaseId,
@@ -122,7 +122,7 @@ const server = http.createServer(async (req, res) => {
       break;
 
     case "/loc":
-      console.log("/loc called");
+      // console.log("/loc called");
       // Query the database and wait for the result
       const query_loc = await notion.databases.query({
         database_id: notionDatabaseId,
@@ -143,6 +143,7 @@ const server = http.createServer(async (req, res) => {
       break;
 
     case "/post":
+      // console.log("/post called") 
       let body = "";
 
       // collect data chunks
@@ -174,6 +175,7 @@ const server = http.createServer(async (req, res) => {
             }
           })
           console.log(response);
+          console.log("id/name edited. Edit information:" + body);
           res.setHeader("Content-Type", "application/json");
           res.writeHead(200);
           res.end(JSON.stringify({message: "200 OK"}));
