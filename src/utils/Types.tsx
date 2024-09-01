@@ -8,5 +8,6 @@
       name?: string,
       tel?: string,
       ID?: string,
-    }
+    },
+    page_id: string
   };

@@ -1,4 +1,4 @@
-import { typeItem } from "../utils/Types"
+import { typeItem } from "../utils/Types.tsx"
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogClose
 } from "@/components/ui/dialog"
 
-export default function item({ name, loc, time }: typeItem) {
+export default function item({ name, loc, time, page_id }: typeItem) {
   return (<div className="bg-gray-500 text-white rounded p-4 m-4">
     <h2>{name}</h2>
     <p className="">{loc}</p>
@@ -17,6 +17,7 @@ export default function item({ name, loc, time }: typeItem) {
     <Dialog>
       <DialogTrigger className="bg-transparent text-white border-black border-4">立即領取</DialogTrigger>
       <DialogContent>
+          <form action=""> 
         <DialogHeader>
           <DialogTitle>登記領取</DialogTitle>
           <DialogDescription>
@@ -28,6 +29,7 @@ export default function item({ name, loc, time }: typeItem) {
           <input placeholder="姓名"></input>
         </DialogHeader>
         <DialogClose>送出</DialogClose>
+          </form>
       </DialogContent>
     </Dialog>
 

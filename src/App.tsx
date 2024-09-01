@@ -22,23 +22,23 @@ function App() {
   const [gameStraitSelected, setGameStraitSelected] = useState(0);
 
   // fake data
-  const itemsFake: typeItem[] = [
-    {
-      name: "錢包",
-      loc: "台北車站",
-      time: new Date("2024-08-27T19:21:00.000+08:00"),
-    },
-    {
-      name: "雨傘",
-      loc: "陽明山",
-      time: new Date("2024-08-27T19:21:00.000+08:00"),
-    },
-    {
-      name: "證件",
-      loc: "台北101",
-      time: new Date("2024-08-27T19:21:00.000+08:00"),
-    }
-  ]
+  // const itemsFake: typeItem[] = [
+  //   {
+  //     name: "錢包",
+  //     loc: "台北車站",
+  //     time: new Date("2024-08-27T19:21:00.000+08:00"),
+  //   },
+  //   {
+  //     name: "雨傘",
+  //     loc: "陽明山",
+  //     time: new Date("2024-08-27T19:21:00.000+08:00"),
+  //   },
+  //   {
+  //     name: "證件",
+  //     loc: "台北101",
+  //     time: new Date("2024-08-27T19:21:00.000+08:00"),
+  //   }
+  // ]
 
   const getGameList = () => {
     // for fetching fake data
@@ -96,11 +96,22 @@ function App() {
       </header>
 
       <button onClick={() => {
-        fetch(`http://localhost:8000/?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
-          .then((response) => response.json())
-          .then((payload) => {
-            console.log(payload)
+        // GET method fetching test:
+        // fetch(`http://localhost:8000/?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
+        //   .then((response) => response.json())
+        //   .then((payload) => {
+        //     console.log(payload)
+        //   })
+        // POST method fetching test:
+        fetch("http://localhost:8000/post", {
+          method: "POST",
+          body: JSON.stringify({
+            page_id:"c36ee444-e65c-4381-a053-b48c412c0de2",
+            name: "name",
+            ID_number: "A123456789"
           })
+        }).then((res) => res.json())
+        .then((payload) => console.log(payload))
       }
       }>fetch test</button>
 
@@ -158,6 +169,7 @@ function App() {
                   name={item.name}
                   loc={item.loc}
                   time={item.time}
+                  page_id={item.page_id}
                 />);
               // else return (<></>);
             })}

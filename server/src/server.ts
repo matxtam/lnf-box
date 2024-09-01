@@ -1,20 +1,7 @@
 require("dotenv").config();
-import http from "http";
+import http from "http"; // node.js has a built-in module called http.
 import url from "url";
 import { Client } from "@notionhq/client";
-
-// export type typeItem = {
-//   name: string,
-//   loc?: string,
-//   time?: string,
-//   colors?: string,
-//   straits?: string[],
-//   owner?: {
-//     name?: string,
-//     tel?: string,
-//     ID?: string,
-//   }
-// };
 
 // The dotenv library will read from your .env file into these values on `process.env`
 const notionDatabaseId = process.env.NOTION_DATABASE_ID;
@@ -61,6 +48,7 @@ const server = http.createServer(async (req, res) => {
         const owner_name = row.properties.name;
         const owner_phone = row.properties.phone;
         const owner_ID = row.properties.ID_number;
+        const page_id = row.id;
 
         // data type check
         if (
@@ -98,7 +86,8 @@ const server = http.createServer(async (req, res) => {
                 name: owner_name.rich_text?.[0]?.plain_text,
                 phone: owner_phone.rich_text?.[0]?.plain_text,
                 ID: owner_ID.rich_text?.[0]?.plain_text,
-              }
+              },
+              page_id
             });
             return acc;
         }
@@ -152,6 +141,47 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200);
       res.end(JSON.stringify(list_loc));
       break;
+
+    case "/post":
+      let body = "";
+
+      // collect data chunks
+      req.on("data", chunk => {body += chunk.toString()});
+
+      // end of request body
+      req.on("end", () => {
+        async function updateNotion(){
+          const parsedBody = JSON.parse(body);
+          const response = await notion.pages.update({
+            page_id: parsedBody.page_id,
+            properties: {
+              "name": {
+                rich_text: [{
+                  type: "text",
+                  text: {
+                    content: parsedBody.name
+                  }
+                }]
+              } as any, // I don't know why but "any" works... 
+              "ID_number": {
+                rich_text: [{
+                  type: "text",
+                  text: {
+                    content: parsedBody.ID_number
+                  }
+                }]
+              } as any,
+            }
+          })
+          console.log(response);
+          res.setHeader("Content-Type", "application/json");
+          res.writeHead(200);
+          res.end(JSON.stringify({message: "200 OK"}));
+        }
+        updateNotion();
+      })
+      break;
+
 
     default:
       res.setHeader("Content-Type", "application/json");
