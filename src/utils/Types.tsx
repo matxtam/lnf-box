@@ -9,5 +9,6 @@
       tel?: string,
       ID?: string,
     },
-    page_id: string
+    page_id: string,
+    game_matches? : number
   };

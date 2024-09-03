@@ -64,12 +64,14 @@ export default function SrchBar({
                         itemNameList.map((itemName, index) => (itemName.includes(inputValue) ? <button
                             className={(selectedName == index) ? "bg-black" : "bg-gray-500"}
                             onClick={() => { setSelectedName(index); setSrchName(itemNameList[index]); }}
+                            key={index}
                         >{itemName}</button> : <></>))
                         : <></>}
                     {(stage == "search2") ?
                         itemLocList.map((itemLoc, index) => (itemLoc.includes(inputValue) ? <button
                             className={(selectedLoc == index) ? "bg-black" : "bg-gray-500"}
                             onClick={() => { setSelectedLoc(index); setSrchLoc(itemLocList[index]); }}
+                            key={index}
                         >{itemLoc}</button> : <></>))
                         : <></>}
                 </>

@@ -4,6 +4,8 @@ import './components/Item'
 import { typeItem } from './utils/Types'
 import Item from './components/Item'
 import SrchBar from './components/SearchBar'
+import item from './components/Item'
+import { Container } from 'lucide-react'
 
 type typeGameStrait = {
   strait:string;
@@ -19,7 +21,7 @@ function App() {
   const [srchDate2, setSrchDate2] = useState<Date | undefined>(new Date())
   const [itemList, setItemList] = useState<typeItem[]>([]);
   const [gameStraitList, setGameStraitList] = useState<typeGameStrait[]>([]);
-  const [gameStraitSelected, setGameStraitSelected] = useState(0);
+  const [gameStraitSelected, setGameStraitSelected] = useState<string[]>([]);
 
   // fake data
   // const itemsFake: typeItem[] = [
@@ -74,11 +76,26 @@ function App() {
     else if (stage == "search3") {
       setStage("game1");
       getGameList();
-      setGameStraitSelected(0);
+      setGameStraitSelected([]);
       // console.log(srchName); console.log(srchDate1); console.log(srchDate2);
     }
     else if (stage == "game1") setStage("game2");
-    else if (stage == "game2") setStage("found");
+    else if (stage == "game2"){
+      setStage("found");
+      setItemList(itemList.reduce<typeItem[]>((acc, item) => {
+        let counter= 0;
+        gameStraitSelected.forEach((strait) => {
+          if (item.colors?.includes(strait)) counter += 1;
+          if (item.straits?.includes(strait)) counter += 1;
+        })
+        if (counter != 0) acc.push({...item, game_matches:counter})
+        return acc;
+      }, []).sort((a, b) => {
+        if((a.game_matches ?? 0) > (b.game_matches ?? 0)) return 1;
+        if((a.game_matches ?? 0) < (b.game_matches ?? 0)) return -1;
+        else return 0;
+      }))
+    }
     else {
       setStage("start");
       setSrchName(""); setSrchLoc("");
@@ -92,7 +109,7 @@ function App() {
         <h1>Lost & Found Platform</h1>
       </header>
 
-      <button onClick={() => {
+      {/* <button onClick={() => { 
         // GET method fetching test:
         // fetch(`http://localhost:8000/?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
         //   .then((response) => response.json())
@@ -110,7 +127,7 @@ function App() {
         }).then((res) => res.json())
         .then((payload) => console.log(payload))
       }
-      }>fetch test</button>
+      }>fetch test</button>*/}
 
       <h1 className='p-4'>{
         (stage == "start") ? "東西好像掉了？" :
@@ -140,8 +157,10 @@ function App() {
               <button
                 className={gameStraitList[index].selected ? "bg-gray-500" : "bg-black"}
                 onClick={() => {
-                  if(gameStraitSelected < 4 || gameStraitList[index].selected){
-                    setGameStraitSelected(gameStraitList[index].selected ? gameStraitSelected-1 : gameStraitSelected+1)
+                  if(gameStraitSelected.length < 4 || gameStraitList[index].selected){
+                    setGameStraitSelected(gameStraitList[index].selected 
+                      ? gameStraitSelected 
+                      : [...gameStraitSelected, gameStraitList[index].strait])
                     setGameStraitList([...gameStraitList.slice(0, index), 
                     {strait: gameStraitList[index].strait,
                     selected:!gameStraitList[index].selected},
@@ -167,6 +186,8 @@ function App() {
                   loc={item.loc}
                   time={item.time}
                   page_id={item.page_id}
+                  game_matches={item.game_matches}
+                  key={item.page_id}
                 />);
               // else return (<></>);
             })}

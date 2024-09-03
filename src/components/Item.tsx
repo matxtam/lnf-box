@@ -10,7 +10,7 @@ import {
   DialogClose
 } from "@/components/ui/dialog"
 
-export default function item({ name, loc, time, page_id }: typeItem) {
+export default function item({ name, loc, time, page_id, game_matches }: typeItem) {
   const nameRef = useRef<HTMLInputElement>(null);
   const idRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +30,7 @@ export default function item({ name, loc, time, page_id }: typeItem) {
     <h2>{name}</h2>
     <p className="">{loc}</p>
     <p>{time.toDateString()}</p>
+    <p>{"matched:"+game_matches}</p>
     <Dialog>
       <DialogTrigger className="bg-transparent text-white border-black border-4">立即領取</DialogTrigger>
       <DialogContent>
