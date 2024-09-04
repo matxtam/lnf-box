@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/dialog"
 
 export default function item({ name, loc, time, page_id, game_matches }: typeItem) {
+  const server = "http://localhost:8000/"
   const nameRef = useRef<HTMLInputElement>(null);
   const idRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = () => {
-    fetch("http://localhost:8000/post", {
+    fetch((server + "post"), {
       method: "POST",
       body: JSON.stringify({
         page_id,

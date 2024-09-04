@@ -4,8 +4,6 @@ import './components/Item'
 import { typeItem } from './utils/Types'
 import Item from './components/Item'
 import SrchBar from './components/SearchBar'
-import item from './components/Item'
-import { Container } from 'lucide-react'
 
 type typeGameStrait = {
   strait:string;
@@ -13,7 +11,8 @@ type typeGameStrait = {
 }
 
 function App() {
-
+  // const server = process.env.REACT_APP_API_URL;
+  const server = "http://localhost:8000/"
   const [stage, setStage] = useState("start")
   const [srchName, setSrchName] = useState("")
   const [srchLoc, setSrchLoc] = useState("")
@@ -51,8 +50,9 @@ function App() {
     // )))
 
     // for fetching real data
+    console.log("server url = " + server)
     
-    fetch(`http://localhost:8000/?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
+    fetch(server + `?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
       .then((response) => response.json())
       .then((payload) => {
         setItemList(payload.map((item: Omit<typeItem, "time"> & { time: string }) => {
@@ -111,13 +111,13 @@ function App() {
 
       {/* <button onClick={() => { 
         // GET method fetching test:
-        // fetch(`http://localhost:8000/?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
+        // fetch(`server?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
         //   .then((response) => response.json())
         //   .then((payload) => {
         //     console.log(payload)
         //   })
         // POST method fetching test:
-        fetch("http://localhost:8000/post", {
+        fetch("serverpost", {
           method: "POST",
           body: JSON.stringify({
             page_id:"c36ee444-e65c-4381-a053-b48c412c0de2",
