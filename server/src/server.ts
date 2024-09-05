@@ -18,11 +18,12 @@ const notion = new Client({
   auth: notionSecret,
 });
 
-const host = "localhost";
-const port = 8000;
+const host = process.env.HOST || "localhost";
+const port = parseInt(process.env.PORT || '8000' , 10);
 
 // Require an async function here to support await with the DB query
-const server = http.createServer(async (req, res) => {
+// const server = http.createServer(async (req, res) => {
+const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const parsedUrl = url.parse(req.url ?? "", true)
@@ -213,8 +214,13 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(404);
       res.end(JSON.stringify({ error: "Resource not found" }));
   }
-});
+// });
+}
 
-server.listen(port, host, () => {
-  console.log(`Server is running on http://${host}:${port}`);
-});
+// server.listen(port, host, () => {
+//   console.log(`Server is running on http://${host}:${port}`);
+// });
+
+export default (req:http.IncomingMessage, res:http.ServerResponse) => {
+  requestListener(req, res);
+};
