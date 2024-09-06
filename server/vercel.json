@@ -1,11 +1,6 @@
 {
   "routes": [{
     "src":"/(.*)",
-    "dest":"/dist/server.js"
-  }],
-  "buildCommand":"yarn build",
-  "builds":[{
-    "src":"dist/server.js",
-    "use": "@vercel/node"
+    "dest":"/api/server.ts"
   }]
 }
