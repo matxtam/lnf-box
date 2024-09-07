@@ -11,4 +11,6 @@
     },
     page_id: string,
     game_matches? : number
+    id?: string,
+    image_url?: string,
   };

@@ -12,7 +12,8 @@ type typeGameStrait = {
 
 function App() {
   // const server = process.env.REACT_APP_API_URL;
-  const server = "http://localhost:8000/"
+  const server = "https://lnf-box-server.vercel.app/"
+  // const server = "http://localhost:8000/"
   const [stage, setStage] = useState("start")
   const [srchName, setSrchName] = useState("")
   const [srchLoc, setSrchLoc] = useState("")
@@ -50,7 +51,6 @@ function App() {
     // )))
 
     // for fetching real data
-    console.log("server url = " + server)
     
     fetch(server + `?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
       .then((response) => response.json())
@@ -105,9 +105,7 @@ function App() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 text-left bg-gray-500 w-full pb-12 pl-4 pt-2" >
-        <h1>Lost & Found Platform</h1>
-      </header>
+        <p className='fixed top-0 text-6 w-full text-center'>Nexus: lost & Found Platform</p>
 
       {/* <button onClick={() => { 
         // GET method fetching test:
@@ -136,9 +134,11 @@ function App() {
               (stage == "search3") ? "什麼時候遺失的？" :
                 (stage == "game1") ? "我們找到了一些..." :
                   (stage == "game2") ? "請點選符合您遺失物的特徵" :
-                    (stage == "found") ? "這是您的嗎？" : ""
+                    (stage == "found") ? "這是您的嗎？" : 
+                      (stage == "passcode") ? "請記住您的驗證碼" : ""
       }</h1>
 
+      <main className="flex flex-col flex-wrap items-center max-w-screen-sm place-items-center m-4 gap-2">
       {// search for items
         (stage == "search1" || stage == "search2" || stage == "search3") ?
           <SrchBar
@@ -152,14 +152,14 @@ function App() {
 
       {// game playing list
         (stage == "game2") ?
-          <article className='flex flex-row flex-wrap'>
+          <article className='flex flex-row flex-wrap gap-2'>
             {gameStraitList.map((strait, index) =>
               <button
-                className={gameStraitList[index].selected ? "bg-gray-500" : "bg-black"}
+                className={gameStraitList[index].selected ? "border-google-blue" : ""}
                 onClick={() => {
                   if(gameStraitSelected.length < 4 || gameStraitList[index].selected){
                     setGameStraitSelected(gameStraitList[index].selected 
-                      ? gameStraitSelected 
+                      ? gameStraitSelected.filter((strait) => (strait != gameStraitList[index].strait))
                       : [...gameStraitSelected, gameStraitList[index].strait])
                     setGameStraitList([...gameStraitList.slice(0, index), 
                     {strait: gameStraitList[index].strait,
@@ -173,7 +173,7 @@ function App() {
 
       {// found items list
         (stage == "found") ?
-          <article className='flex flex-col gap-2'>
+          <article className='flex flex-row flex-wrap gap-2'>
             {/* {itemsFake.map(item => { */}
             {itemList.map(item => {
               // filtering items at frontend
@@ -188,21 +188,16 @@ function App() {
                   page_id={item.page_id}
                   game_matches={item.game_matches}
                   key={item.page_id}
+                  image_url={item.image_url}
                 />);
               // else return (<></>);
             })}
           </article>
           : <></>}
+          
 
-      {// last step btn
-        (stage == "search2" || stage == "search3") ?
-          <button onClick={() => {
-            if (stage == "search2") setStage("search1");
-            else if (stage == "search3") setStage("search2");
-          }}>上一步</button>
-          : <></>}
-
-      {/* next step btn */}
+      <div className='flex flex-row-reverse w-full justify-between mt-8'>
+            {/* next step btn */}
       <button onClick={handleNextStep}
         disabled={
           (stage == "search1" && srchName == "") ? true :
@@ -211,7 +206,16 @@ function App() {
                 false
         }
       >{(stage == "start") ? "立即查詢" : (stage == "found") ? "再找一次" : "下一步"}</button>
+      {// last step btn
+        (stage == "search2" || stage == "search3") ?
+          <button onClick={() => {
+            if (stage == "search2") setStage("search1");
+            else if (stage == "search3") setStage("search2");
+          }}>上一步</button>
+          : <></>}
 
+
+    </div></main>
     </>
   )
 }

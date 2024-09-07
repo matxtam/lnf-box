@@ -11,23 +11,27 @@ export default function SrchBar({
     stage: string
 }) {
 
+    const server = "https://lnf-box-server.vercel.app/"
     const [inputValue, setInputValue] = useState('');
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
     }
     const [itemNameList, setItemNameList] = useState<string[]>([])
     const [itemLocList, setItemLocList] = useState<string[]>([])
+    const [loading, setLoading] = useState(true)
 
 
     useEffect(() => {
         const fetchName = async () => {
-            const res = await fetch("http://localhost:8000/name");
+            setLoading(true);
+            const res = await fetch(server + "name");
             const payload = await res.json();
             // console.log(payload);
             setItemNameList(payload);
+            setLoading(false)
         }
         const fetchLoc = async () => {
-            const res = await fetch("http://localhost:8000/loc");
+            const res = await fetch(server + "loc");
             const payload = await res.json();
             // console.log(payload);
             setItemLocList(payload);
@@ -49,31 +53,32 @@ export default function SrchBar({
     });
 
     return (
-        <main className="flex flex-row flex-wrap items-center m-8 gap-2">
+        <>
             {(stage != "search3") ?
                 <>
-                    <div>
                         <input
                             type="text"
                             value={inputValue}
                             onChange={handleInputChange}
                             placeholder="Search..."
                         ></input>
-                    </div>
+                    <div className="flex flex-row flex-wrap p-8 gap-2">
+                    {loading ? <p className="font-bold">loading...</p> : <></>}
                     {(stage == "search1") ?
                         itemNameList.map((itemName, index) => (itemName.includes(inputValue) ? <button
-                            className={(selectedName == index) ? "bg-black" : "bg-gray-500"}
+                            className={(selectedName == index) ? "border-google-blue" : ""}
                             onClick={() => { setSelectedName(index); setSrchName(itemNameList[index]); }}
                             key={index}
                         >{itemName}</button> : <></>))
                         : <></>}
                     {(stage == "search2") ?
                         itemLocList.map((itemLoc, index) => (itemLoc.includes(inputValue) ? <button
-                            className={(selectedLoc == index) ? "bg-black" : "bg-gray-500"}
+                            className={(selectedLoc == index) ? "border-google-blue" : ""}
                             onClick={() => { setSelectedLoc(index); setSrchLoc(itemLocList[index]); }}
                             key={index}
                         >{itemLoc}</button> : <></>))
                         : <></>}
+                    </div>
                 </>
                 :
                 <>
@@ -85,9 +90,9 @@ export default function SrchBar({
                             setSrchDate1(range?.from);
                             setSrchDate2((range?.to) ? (range?.to) : (range?.from));
                         }}
-                        className="rounded-md border"
+                        className="rounded-md border-none m-8"
                     />
                 </>}
-        </main>
+            </>
     )
 }

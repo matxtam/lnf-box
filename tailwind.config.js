@@ -4,6 +4,7 @@ module.exports = {
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
+    './components/ui/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
@@ -15,6 +16,11 @@ module.exports = {
       screens: {
         "2xl": "1400px",
       },
+    },
+    colors: {
+      "google-blue": "#4285f4",
+      "google-green": "#34a853",
+      "google-yellow": "#f4b400"
     },
     extend: {
       colors: {
