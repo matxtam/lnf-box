@@ -18,19 +18,21 @@ const notion = new Client({
   auth: notionSecret,
 });
 
-const host = process.env.HOST || "localhost";
-const port = parseInt(process.env.PORT || '8000' , 10);
-
 // Require an async function here to support await with the DB query
-// const server = http.createServer(async (req, res) => {
 const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-
   const parsedUrl = url.parse(req.url ?? "", true)
   switch (parsedUrl.pathname) {
     case "/":
       const params = parsedUrl.query;
+      console.log(params);
       // Query the database and wait for the result
+      if (Object.keys(params).length === 0){
+        res.setHeader("Content-Type", "application/json");
+        res.writeHead(200);
+        res.end("Welcome to nexus server!");
+        break;
+      }
       const query = await notion.databases.query({
         database_id: notionDatabaseId,
         filter:{
@@ -62,7 +64,7 @@ const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse
       // if (typeof (params.date1) == "string") console.log(new Date(params.date1));
 
       // const list = query.results[1].properties.color
-      const list = query.results.reduce<{}[]>((acc, row) => {
+      const list = await query.results.reduce<Promise<{}[]>>(async (accPromise, row) => {
         const id = row.properties.number;
         const name = row.properties.items;
         const colors = row.properties.color;
@@ -73,6 +75,12 @@ const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse
         const owner_phone = row.properties.phone;
         const owner_ID = row.properties.ID_number;
         const page_id = row.id;
+        const block = await notion.blocks.children.list({
+            block_id: page_id,
+            page_size: 2,
+          })
+
+        const acc = await accPromise;
 
         // data type check
         if (
@@ -88,16 +96,18 @@ const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse
           typeof (params.name) == "string" &&
           typeof (params.loc) == "string" &&
           typeof (params.date1) == "string" &&
-          typeof (params.date2) == "string"
+          typeof (params.date2) == "string" &&
+          block.results[0].type == "image" &&
+          block.results[0].image.type=="external"
         ) {
 
-          // filtering
-          if (
-            name.rich_text?.[0]?.plain_text.includes(params.name) &&
-            loc.rich_text?.[0]?.plain_text.includes(params.loc) &&
-            (new Date(params.date1)).getTime()           <= (new Date(time.date?.start ?? 0)).getTime() &&
-            (new Date(params.date2)).getTime() + 8.64e+7 >= (new Date(time.date?.start ?? 0)).getTime()
-          )
+          // filtering without using notion
+          // if (
+          //   name.rich_text?.[0]?.plain_text.includes(params.name) &&
+          //   loc.rich_text?.[0]?.plain_text.includes(params.loc) &&
+          //   (new Date(params.date1)).getTime()           <= (new Date(time.date?.start ?? 0)).getTime() &&
+          //   (new Date(params.date2)).getTime() + 8.64e+7 >= (new Date(time.date?.start ?? 0)).getTime()
+          // )
 
             acc.push({
               id: id.title?.[0]?.plain_text ?? "INVALID",
@@ -111,12 +121,13 @@ const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse
                 phone: owner_phone.rich_text?.[0]?.plain_text,
                 ID: owner_ID.rich_text?.[0]?.plain_text,
               },
-              page_id
+              page_id,
+              image_url: block.results[0].image.external.url
             });
             return acc;
         }
         else return acc;
-      }, [])
+      }, Promise.resolve([]))
 
       console.log(list);
       res.setHeader("Content-Type", "application/json");
@@ -214,12 +225,13 @@ const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse
       res.writeHead(404);
       res.end(JSON.stringify({ error: "Resource not found" }));
   }
-// });
 }
 
-// server.listen(port, host, () => {
-//   console.log(`Server is running on http://${host}:${port}`);
-// });
+// if running at local, uncomment these two lines:
+const server = http.createServer(requestListener);
+const host = "localhost";
+const port = 8000;
+server.listen(port, host, () => { console.log(`Server is running on http://${host}:${port}`); });
 
 export default (req:http.IncomingMessage, res:http.ServerResponse) => {
   requestListener(req, res);
