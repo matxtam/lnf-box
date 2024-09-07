@@ -22,6 +22,8 @@ function App() {
   const [itemList, setItemList] = useState<typeItem[]>([]);
   const [gameStraitList, setGameStraitList] = useState<typeGameStrait[]>([]);
   const [gameStraitSelected, setGameStraitSelected] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [passcode, setPasscode] = useState({passcode: "", loc:""});
 
   // fake data
   // const itemsFake: typeItem[] = [
@@ -51,7 +53,7 @@ function App() {
     // )))
 
     // for fetching real data
-    
+    setLoading(true);
     fetch(server + `?name=${srchName}&loc=${srchLoc}&date1=${srchDate1}&date2=${srchDate2}`)
       .then((response) => response.json())
       .then((payload) => {
@@ -59,11 +61,15 @@ function App() {
           return { ...item, time: new Date(item.time) }
           
         }));
-        setGameStraitList(payload.reduce((acc:typeGameStrait[], item:Omit<typeItem, "time"> & { time: string }) => {
-          acc.push(...(item.straits ? item.straits.map((strait) => ({strait, selected:false})) : []),
-                   ...(item.colors ?  item.colors.map((strait) => ({strait, selected:false})) : []));
+        setGameStraitList(payload.reduce((acc:string[], item:Omit<typeItem, "time"> & { time: string }) => {
+          acc.push(...(item.straits ? item.straits.map((strait) => (strait)) : []),
+                   ...(item.colors ?  item.colors.map((strait) => (strait)) : []));
           return acc;
-        }, []))
+        }, []).reduce((acc:string[], item:string) => {
+          if(!acc.includes(item)) acc.push(item);
+          return acc;
+        }, []).map((strait:string) => ({strait, selected: false})))
+        setLoading(false);
         // console.log(payload);
       })
       .catch((error) => console.log(error))
@@ -79,9 +85,13 @@ function App() {
       setGameStraitSelected([]);
       // console.log(srchName); console.log(srchDate1); console.log(srchDate2);
     }
-    else if (stage == "game1") setStage("game2");
+    else if (stage == "game1"){
+      const listLength = itemList.length;
+      if(listLength == 0 )setStage("no-found");
+      else if(listLength == 1)setStage("found");
+      else setStage("game2")
+    }
     else if (stage == "game2"){
-      setStage("found");
       setItemList(itemList.reduce<typeItem[]>((acc, item) => {
         let counter= 0;
         gameStraitSelected.forEach((strait) => {
@@ -91,10 +101,11 @@ function App() {
         if (counter != 0) acc.push({...item, game_matches:counter})
         return acc;
       }, []).sort((a, b) => {
-        if((a.game_matches ?? 0) > (b.game_matches ?? 0)) return 1;
-        if((a.game_matches ?? 0) < (b.game_matches ?? 0)) return -1;
+        if((a.game_matches ?? 0) > (b.game_matches ?? 0)) return -1;
+        if((a.game_matches ?? 0) < (b.game_matches ?? 0)) return 1;
         else return 0;
       }))
+      setStage("found");
     }
     else {
       setStage("start");
@@ -127,7 +138,7 @@ function App() {
       }
       }>fetch test</button>*/}
 
-      <h1 className='p-4'>{
+      <h1 className='p-4'>{ // Header
         (stage == "start") ? "東西好像掉了？" :
           (stage == "search1") ? "您遺失了什麼？" :
             (stage == "search2") ? "在哪裡遺失的？" :
@@ -135,8 +146,20 @@ function App() {
                 (stage == "game1") ? "我們找到了一些..." :
                   (stage == "game2") ? "請點選符合您遺失物的特徵" :
                     (stage == "found") ? "這是您的嗎？" : 
+                    (stage == "posting") ? "送出中..." :
                       (stage == "passcode") ? "請記住您的驗證碼" : ""
       }</h1>
+
+      {//subtitle
+        (stage == "game1") ? loading ? <p>Loading...</p>:<p>{"我們共找到了 "+itemList.length+" 件物品。"}</p> : 
+        (stage == "game2") ? <p>*至多選取四項特徵。*</p>:
+        (stage == "no-found") ? <p>未找到符合條件的物品 ಠ╭╮ಠ</p> :
+        (stage == "passcode") ? <div>
+          <p className="font-bold text-7xl tracking-widest bg-gray-500 rounded-2xl">{passcode.passcode}</p>
+          <p>{"並請至 "+passcode.loc+ " 的遺失物箱子領回您的遺失物。"}</p>
+        </div>
+        :<></>
+      }
 
       <main className="flex flex-col flex-wrap items-center max-w-screen-sm place-items-center m-4 gap-2">
       {// search for items
@@ -155,6 +178,7 @@ function App() {
           <article className='flex flex-row flex-wrap gap-2'>
             {gameStraitList.map((strait, index) =>
               <button
+                key={index}
                 className={gameStraitList[index].selected ? "border-google-blue" : ""}
                 onClick={() => {
                   if(gameStraitSelected.length < 4 || gameStraitList[index].selected){
@@ -170,10 +194,10 @@ function App() {
               >{strait.strait}</button>
             )}
           </article> : <></>}
-
-      {// found items list
+      
+          {// found items list
         (stage == "found") ?
-          <article className='flex flex-row flex-wrap gap-2'>
+          <article className='flex flex-row flex-wrap gap-2 justify-center align-items-center'>
             {/* {itemsFake.map(item => { */}
             {itemList.map(item => {
               // filtering items at frontend
@@ -186,26 +210,32 @@ function App() {
                   loc={item.loc}
                   time={item.time}
                   page_id={item.page_id}
-                  game_matches={item.game_matches}
                   key={item.page_id}
                   image_url={item.image_url}
+                  id={item.id}
+                  setStage={setStage}
+                  setId={setPasscode}
                 />);
               // else return (<></>);
             })}
           </article>
           : <></>}
-          
+         
 
       <div className='flex flex-row-reverse w-full justify-between mt-8'>
             {/* next step btn */}
       <button onClick={handleNextStep}
         disabled={
-          (stage == "search1" && srchName == "") ? true :
-            (stage == "search2" && srchLoc == "") ? true :
-              (stage == "search3" && srchDate1 == undefined) ? true :
-                false
+          ((stage == "search1" && srchName == "") ||
+            (stage == "search2" && srchLoc == "")  ||
+              (stage == "search3" && srchDate1 == undefined) ||
+                (stage == "game2" && gameStraitSelected.length == 0) ||
+                loading) ? true :
+                  false
         }
-      >{(stage == "start") ? "立即查詢" : (stage == "found") ? "再找一次" : "下一步"}</button>
+      >{(stage == "start") ? "立即查詢" :
+        (stage == "found") ? "再找一次" :
+        (stage == "no-found" || stage == "passcode") ? "回到首頁" : "下一步"}</button>
       {// last step btn
         (stage == "search2" || stage == "search3") ?
           <button onClick={() => {

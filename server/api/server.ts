@@ -227,11 +227,11 @@ const requestListener = async (req:http.IncomingMessage, res:http.ServerResponse
   }
 }
 
-// if running at local, uncomment these two lines:
-const server = http.createServer(requestListener);
-const host = "localhost";
-const port = 8000;
-server.listen(port, host, () => { console.log(`Server is running on http://${host}:${port}`); });
+// if running at local, uncomment these lines:
+// const server = http.createServer(requestListener);
+// const host = "localhost";
+// const port = 8000;
+// server.listen(port, host, () => { console.log(`Server is running on http://${host}:${port}`); });
 
 export default (req:http.IncomingMessage, res:http.ServerResponse) => {
   requestListener(req, res);

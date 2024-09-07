@@ -127,6 +127,10 @@ button:focus, input:focus,
 button:focus-visible {
   outline: none;
 }
+button:disabled {
+  background-color: #dddddd;
+  color: #bbbbbb;
+}
 
 
 
